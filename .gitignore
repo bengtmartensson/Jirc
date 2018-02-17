@@ -1,1 +1,6 @@
 target
+*~
+.gradle
+.nb-gradle
+build
+nbactions.xml

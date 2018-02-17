@@ -213,7 +213,7 @@ final public class Lirc2Xml {
 
         @Parameter(names = {"-c", "--ccf", "--hex", "--pronto"}, description = "Generate the CCF (\"Hex\", \"Pronto\") form of the signals")
                 boolean generateCcf = false;
-        @Parameter(names = {"-d", "--debug"}, description = "Debug. Not really useful...")
+        @Parameter(names = {"-d", "--debug"}, hidden = true, description = "Debug. Not really useful...")
                 int debug = 0;
         @Parameter(names = {"-e", "--encoding", "--outputencoding"}, description = "Character encoding of the generated XML file")
                 String encoding = "UTF-8";
