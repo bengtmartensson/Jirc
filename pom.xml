@@ -169,10 +169,5 @@
             <artifactId>Girr</artifactId>
             <version>1.5dev</version>
         </dependency>
-        <dependency>
-            <groupId>org.harctoolbox</groupId>
-            <artifactId>IrpMaster</artifactId>
-            <version>1.5dev</version>
-        </dependency>
     </dependencies>
 </project>
