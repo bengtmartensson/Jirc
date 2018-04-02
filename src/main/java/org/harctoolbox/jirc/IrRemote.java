@@ -7,22 +7,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.harctoolbox.IrpMaster.DecodeIR;
-import org.harctoolbox.IrpMaster.IncompatibleArgumentException;
-import org.harctoolbox.IrpMaster.IrSequence;
-import org.harctoolbox.IrpMaster.IrSignal;
-import org.harctoolbox.IrpMaster.IrpMasterException;
-import org.harctoolbox.IrpMaster.IrpUtils;
-import org.harctoolbox.IrpMaster.ModulatedIrSequence;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.harctoolbox.girr.Command;
+import org.harctoolbox.girr.GirrException;
 import org.harctoolbox.girr.Remote;
 import org.harctoolbox.girr.RemoteSet;
+import org.harctoolbox.ircore.IrSequence;
+import org.harctoolbox.ircore.IrSignal;
+import org.harctoolbox.ircore.ModulatedIrSequence;
+import org.harctoolbox.ircore.OddSequenceLengthException;
+import org.harctoolbox.ircore.ThisCannotHappenException;
 
 /**
  * This class represents a remote in Lirc, with all its parameters.
  * It should preferably not be used outside of the package, and may be package private in a future version.
  */
 final public class IrRemote {
+
+    private final static Logger logger = Logger.getLogger(IrRemote.class.getName());
 
     private static final int LOG_ERR = 1;
     private static final int LOG_WARNING = 2;
@@ -152,7 +155,6 @@ final public class IrRemote {
             String creatingUser, boolean alternatingSigns, int debug) {
         if (remotes == null)
             return null;
-        String decodeir_version = DecodeIR.getVersion();
 
         Map<String, Remote>girrRemotes = new LinkedHashMap<>(remotes.size());
         for (IrRemote irRemote : remotes) {
@@ -162,7 +164,7 @@ final public class IrRemote {
 
         RemoteSet girr = new RemoteSet(creatingUser == null ? System.getProperty("user.name") : creatingUser, configFilename,
                 (new Date()).toString(), Version.appName, Version.version,
-                "DecodeIr", decodeir_version != null ? decodeir_version : "not found",
+                org.harctoolbox.girr.Version.appName, org.harctoolbox.girr.Version.version,
                 null,
                 girrRemotes);
         return girr;
@@ -663,7 +665,7 @@ final public class IrRemote {
         parameters.put("lirc", code.getCode());
         try {
             return new Command(code.getName(), null, "lircdriver:" + driver, parameters);
-        } catch (IrpMasterException ex) {
+        } catch (GirrException ex) {
             // this cannot happen
             throw new InternalError();
         }
@@ -697,7 +699,7 @@ final public class IrRemote {
             intro = null;
         }
 
-        return new IrSignal(freq,  /* duty cycle= */IrpUtils.invalid, intro, repeat,  /* ending= */ null);
+        return new IrSignal(intro, repeat,  new IrSequence(), (double) freq, null);
     }
 
     private boolean setNamedFlag(String flagName) {
@@ -1020,13 +1022,18 @@ final public class IrRemote {
     }
 
     //mine
-    public ModulatedIrSequence toSequence(int[] array, boolean alternatingSigns) throws IncompatibleArgumentException {
+    public ModulatedIrSequence toSequence(int[] array, boolean alternatingSigns) {
         if (array[array.length - 1] == 0)
             array[array.length - 1] = alternatingSigns ? -gap : gap;
-        return new ModulatedIrSequence(array, freq);
+        try {
+            return new ModulatedIrSequence(array, (double) freq);
+        } catch (OddSequenceLengthException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            throw new ThisCannotHappenException();
+        }
     }
 
-    public ModulatedIrSequence toSequence(List<Integer> signals, boolean alternatingSigns) throws IncompatibleArgumentException {
+    public ModulatedIrSequence toSequence(List<Integer> signals, boolean alternatingSigns) {
         int[] array = new int[signals.size() + signals.size() % 2];
         array[array.length - 1] = 0;
         int index = 0;
@@ -1040,21 +1047,17 @@ final public class IrRemote {
     IrSequence render(IrNCode code, boolean useSignsInRawSequences, boolean repeat, int debug) {
         IrSequence seq = null;
 
-        try {
-            Transmit transmit;
-            if (code.getSignals() != null && !code.getSignals().isEmpty()) {
-                seq = repeat ? this.toSequence(code.getSignals(), useSignsInRawSequences) : null;
-            } else {
-                transmit = new Transmit(this, code, debug, repeat);
-                boolean success = transmit.getValid();
-                //transmit.send_repeat(r);
-                if (success) {
-                    int[] arr = transmit.getData(this.min_remaining_gap);
-                    seq = this.toSequence(arr, useSignsInRawSequences);
-                }
+        Transmit transmit;
+        if (code.getSignals() != null && !code.getSignals().isEmpty()) {
+            seq = repeat ? this.toSequence(code.getSignals(), useSignsInRawSequences) : null;
+        } else {
+            transmit = new Transmit(this, code, debug, repeat);
+            boolean success = transmit.getValid();
+            //transmit.send_repeat(r);
+            if (success) {
+                int[] arr = transmit.getData(this.min_remaining_gap);
+                seq = this.toSequence(arr, useSignsInRawSequences);
             }
-        } catch (IncompatibleArgumentException ex) {
-            System.err.println(ex.getMessage()); // FIXME
         }
         return seq;
     }

@@ -35,10 +35,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.harctoolbox.IrpMaster.DecodeIR;
-import org.harctoolbox.IrpMaster.IrpUtils;
-import org.harctoolbox.IrpMaster.XmlUtils;
 import org.harctoolbox.girr.RemoteSet;
+import org.harctoolbox.irp.IrpUtils;
+import org.harctoolbox.irp.XmlUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -70,7 +69,7 @@ final public class Lirc2Xml {
         StringBuilder str = new StringBuilder(1024);
         argumentParser.usage(str);
 
-        (exitcode == IrpUtils.exitSuccess ? System.out : System.err).println(str);
+        (exitcode == IrpUtils.EXIT_SUCCESS ? System.out : System.err).println(str);
         System.exit(exitcode);
     }
 
@@ -89,19 +88,19 @@ final public class Lirc2Xml {
             argumentParser.parse(args);
         } catch (ParameterException ex) {
             System.err.println(ex.getMessage());
-            System.exit(IrpUtils.exitUsageError);
+            System.exit(IrpUtils.EXIT_USAGE_ERROR);
         }
 
         if (commandLineArgs.helpRequested)
-            usage(IrpUtils.exitSuccess);
+            usage(IrpUtils.EXIT_SUCCESS);
 
         if (commandLineArgs.versionRequested) {
             System.out.println(Version.appName + " version " + Version.version);
             System.out.println("JVM: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version") + " " + System.getProperty("os.name") + "-" + System.getProperty("os.arch"));
-            System.out.println("DecodeIR version " + DecodeIR.getVersion());
+            System.out.println("Girr version " + org.harctoolbox.girr.Version.version);
             System.out.println();
             System.out.println(Version.licenseString);
-            System.exit(IrpUtils.exitSuccess);
+            System.exit(IrpUtils.EXIT_SUCCESS);
         }
 
         if (!commandLineArgs.generateCcf && !commandLineArgs.generateRaw && !commandLineArgs.generateParameters) {
@@ -149,11 +148,11 @@ final public class Lirc2Xml {
                     }
                 }
                 if (selected != null) {
-                    remotes = new ArrayList(1);
+                    remotes = new ArrayList<>(1);
                     remotes.add(selected);
                 } else {
                     System.err.println("No such remote " + commandLineArgs.remote + " found, exiting.");
-                    System.exit(IrpUtils.exitFatalProgramFailure);
+                    System.exit(IrpUtils.EXIT_FATAL_PROGRAM_FAILURE);
                 }
             }
 
@@ -161,9 +160,9 @@ final public class Lirc2Xml {
                     System.getProperty("user.name", "unknown"), /*alternatingSigns=*/ true, commandLineArgs.debug);
             if (remoteSet == null) {
                 System.err.println("No remotes in found in file " + configFilename + ", no output generated.");
-                System.exit(IrpUtils.exitFatalProgramFailure);
+                System.exit(IrpUtils.EXIT_FATAL_PROGRAM_FAILURE);
             }
-            Document doc = remoteSet.xmlExportDocument("Lirc2XML export from " + configFilename,
+            Document doc = remoteSet.toDocument("Lirc2XML export from " + configFilename,
                     "xsl", commandLineArgs.stylesheetUrl,
                     commandLineArgs.fatRaw,
                     commandLineArgs.createSchemaLocation, commandLineArgs.generateRaw,
@@ -191,18 +190,18 @@ final public class Lirc2Xml {
                 outFilename = commandLineArgs.outputfile;
             }
 
-            XmlUtils.printDOM(xmlStream, doc, commandLineArgs.encoding);
+            XmlUtils.printDOM(xmlStream, doc, commandLineArgs.encoding, null);
             System.err.println(remotes.size() + " remote(s) written to XML export file " + outFilename + ".");
-            System.exit(IrpUtils.exitSuccess);
+            System.exit(IrpUtils.EXIT_SUCCESS);
         } catch (UnsupportedEncodingException ex) {
             System.err.println("Unsupported encoding: " + ex.getMessage());
-            System.exit(IrpUtils.exitUsageError);
+            System.exit(IrpUtils.EXIT_USAGE_ERROR);
         } catch (FileNotFoundException ex) {
             System.err.println(ex.getMessage() + " could not be found.");
-            System.exit(IrpUtils.exitConfigReadError);
+            System.exit(IrpUtils.EXIT_CONFIG_READ_ERROR);
         } catch (IOException ex) {
             System.err.println(ex.getMessage());
-            System.exit(IrpUtils.exitIoError);
+            System.exit(IrpUtils.EXIT_IO_ERROR);
         }
     }
 
