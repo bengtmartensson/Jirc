@@ -36,8 +36,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.harctoolbox.girr.RemoteSet;
+import org.harctoolbox.ircore.XmlUtils;
 import org.harctoolbox.irp.IrpUtils;
-import org.harctoolbox.irp.XmlUtils;
 import org.w3c.dom.Document;
 
 /**
