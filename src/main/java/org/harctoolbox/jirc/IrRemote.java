@@ -76,7 +76,7 @@ final public class IrRemote {
      */
     final static int GRUNDIG = 0x0080;
     /**
-     * encoding found on Bang & Olufsen remote
+     * encoding found on Bang &amp; Olufsen remote
      */
     final static int BO = 0x0100;
     /**
@@ -469,7 +469,7 @@ final public class IrRemote {
     int freq = DEFAULT_FREQ;
 
     /**
-     * 0<duty cycle<=100
+     * 0 &lt; duty cycle &le; 100
      */
     @SuppressWarnings("PackageVisibleField")
     int duty_cycle;
