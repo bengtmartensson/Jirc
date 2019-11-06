@@ -151,14 +151,13 @@ final public class IrRemote {
         repeat_remote = remote;
     }
 
-    public static RemoteSet newRemoteSet(Collection<IrRemote> remotes, String configFilename,
-            String creatingUser, boolean alternatingSigns, int debug) {
+    public static RemoteSet newRemoteSet(Collection<IrRemote> remotes, String configFilename, String creatingUser) {
         if (remotes == null)
             return null;
 
         Map<String, Remote>girrRemotes = new LinkedHashMap<>(remotes.size());
         for (IrRemote irRemote : remotes) {
-            Remote remote = irRemote.toRemote(alternatingSigns, debug);
+            Remote remote = irRemote.toRemote();
             girrRemotes.put(remote.getName(), remote);
         }
 
@@ -633,7 +632,7 @@ final public class IrRemote {
         return applicationData;
     }
 
-    public Remote toRemote(boolean alternatingSigns, int debug) {
+    public Remote toRemote() {
         Map<String, Map<String, String>> appDataMap = new LinkedHashMap<>(8);
         appDataMap.put("jirc", getApplicationData());
 
@@ -641,7 +640,7 @@ final public class IrRemote {
 
         Map<String, Command> commands = new LinkedHashMap<>(32);
         for (IrNCode c : getCodes()) {
-            Command command = toCommand(c, alternatingSigns, debug);
+            Command command = toCommand(c);
             if (command != null)
                 commands.put(command.getName(), command);
         }
@@ -654,10 +653,8 @@ final public class IrRemote {
                 appDataMap);
     }
 
-    Command toCommand(IrNCode code, boolean alternatingSigns, int debug) {
-        return isTimingInfo()
-                ? toTimedCommand(code, alternatingSigns, debug)
-                : toLircCodeCommand(code);
+    Command toCommand(IrNCode code) {
+        return isTimingInfo() ? toTimedCommand(code) : toLircCodeCommand(code);
     }
 
     Command toLircCodeCommand(IrNCode code) {
@@ -671,17 +668,17 @@ final public class IrRemote {
         }
     }
 
-    Command toTimedCommand(IrNCode code, boolean alternatingSigns, int debug) {
-        IrSignal irSignal = toIrSignal(code, alternatingSigns, debug);
+    Command toTimedCommand(IrNCode code) {
+        IrSignal irSignal = toIrSignal(code);
         return irSignal != null
                 ? new Command(code.getName(), /*comment=*/null, irSignal)
                 : null;
     }
 
-    IrSignal toIrSignal(IrNCode code, boolean alternatingSigns, int debug) {
+    IrSignal toIrSignal(IrNCode code) {
         IrSequence intro = new IrSequence();
         do {
-            IrSequence seq = render(code, alternatingSigns, /* repeat= */ false, debug);
+            IrSequence seq = render(code, /* repeat= */ false);
             if (seq != null && !seq.isEmpty())
                 intro = intro.append(seq);
         } while (code.getTransmit_state() != null);
@@ -689,17 +686,8 @@ final public class IrRemote {
                 && (intro == null || intro.isEmpty()))
             return null;
 
-        IrSequence repeat;
-        if (code.getNext() == null) {
-            repeat = render(code, alternatingSigns, /* repeat= */ true, debug);
-        } else {
-            // It is quite unclear to me what the multiple codes in IrNCode are to be handled,
-            // this is an educated guess.
-            repeat = intro;
-            intro = null;
-        }
-
-        return new IrSignal(intro, repeat,  new IrSequence(), (double) freq, null);
+        IrSequence repeat = render(code, /* repeat= */ true);
+        return new IrSignal(intro, repeat, new IrSequence(), (double) freq, null);
     }
 
     private boolean setNamedFlag(String flagName) {
@@ -1022,9 +1010,9 @@ final public class IrRemote {
     }
 
     //mine
-    public ModulatedIrSequence toSequence(int[] array, boolean alternatingSigns) {
+    public ModulatedIrSequence toModulatedIrSequence(int[] array) {
         if (array[array.length - 1] == 0)
-            array[array.length - 1] = alternatingSigns ? -gap : gap;
+            array[array.length - 1] = gap;
         try {
             return new ModulatedIrSequence(array, (double) freq);
         } catch (OddSequenceLengthException ex) {
@@ -1033,30 +1021,31 @@ final public class IrRemote {
         }
     }
 
-    public ModulatedIrSequence toSequence(List<Integer> signals, boolean alternatingSigns) {
+    public ModulatedIrSequence toModulatedIrSequence(List<Integer> signals) {
         int[] array = new int[signals.size() + signals.size() % 2];
         array[array.length - 1] = 0;
         int index = 0;
         for (Integer d : signals) {
-            array[index] = (alternatingSigns && (index & 1) == 1) ? -d : d;
+            array[index] = d;
             index++;
         }
-        return toSequence(array, alternatingSigns);
+        return toModulatedIrSequence(array);
     }
 
-    IrSequence render(IrNCode code, boolean useSignsInRawSequences, boolean repeat, int debug) {
-        IrSequence seq = null;
+    ModulatedIrSequence render(IrNCode code, boolean isRepeat) {
+        ModulatedIrSequence seq = null;
 
         Transmit transmit;
         if (code.getSignals() != null && !code.getSignals().isEmpty()) {
-            seq = repeat ? this.toSequence(code.getSignals(), useSignsInRawSequences) : null;
+            seq = isRepeat ? this.toModulatedIrSequence(code.getSignals()) : null;
         } else {
-            transmit = new Transmit(this, code, debug, repeat);
+            //transmit = new Transmit(this, code);
+            transmit = new Transmit(this, code, isRepeat);
             boolean success = transmit.getValid();
             //transmit.send_repeat(r);
             if (success) {
                 int[] arr = transmit.getData(this.min_remaining_gap);
-                seq = this.toSequence(arr, useSignsInRawSequences);
+                seq = this.toModulatedIrSequence(arr);
             }
         }
         return seq;

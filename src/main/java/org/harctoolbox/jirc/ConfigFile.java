@@ -116,8 +116,7 @@ public final class ConfigFile {
     public static RemoteSet parseConfig(File filename, String charsetName, boolean rejectLircCode,
             String creatingUser, boolean alternatingSigns) throws IOException {
         Collection<IrRemote> lircRemotes = readConfig(filename, charsetName, rejectLircCode);
-        return IrRemote.newRemoteSet(lircRemotes, filename.getCanonicalPath(),
-                creatingUser, alternatingSigns, 0 /* debug */);
+        return IrRemote.newRemoteSet(lircRemotes, filename.getCanonicalPath(), creatingUser);
     }
     /**
      * Parses a {@link java.io.Reader Reader} for one or many Lirc configuration "file(s)",
@@ -134,8 +133,7 @@ public final class ConfigFile {
     public static RemoteSet parseConfig(Reader reader, String source, boolean rejectLircCode,
             String creatingUser, boolean alternatingSigns) throws IOException {
         Collection<IrRemote> lircRemotes = readConfig(reader, source, rejectLircCode);
-        return IrRemote.newRemoteSet(lircRemotes, source,
-                creatingUser, alternatingSigns, 0 /* debug */);
+        return IrRemote.newRemoteSet(lircRemotes, source, creatingUser);
     }
 
     private static String join(String[] str) {
