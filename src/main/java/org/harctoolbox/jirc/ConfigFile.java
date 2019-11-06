@@ -150,6 +150,32 @@ public final class ConfigFile {
         return result.toString();
     }
 
+    @SuppressWarnings({"CallToPrintStackTrace"})
+    public static void main(String[] args) {
+        String out = "-";
+        int offset = 0;
+        if (args.length >= 2 && args[0].equals("-o")) {
+            out = args[1];
+            offset += 2;
+        }
+
+        try {
+            RemoteSet remoteSet;
+            if (args.length == offset)
+                remoteSet = parseConfig(new InputStreamReader(System.in, defaultCharsetName), defaultCharsetName, true, null, false);
+            else {
+                remoteSet = new RemoteSet();
+                for (int i = offset; i < args.length; i++) {
+                    RemoteSet set = parseConfig(new File(args[i]), defaultCharsetName, true, null, false);
+                    remoteSet.append(set);
+                }
+            }
+            remoteSet.print(out);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private List<IrRemote> remotes;
     private LineNumberReader reader;
     private String line;

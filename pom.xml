@@ -85,7 +85,11 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <archive/>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.harctoolbox.jirc.ConfigFile</mainClass>
+                        </manifest>
+                    </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -148,7 +152,7 @@
         <dependency>
             <groupId>org.harctoolbox</groupId>
             <artifactId>Girr</artifactId>
-            <version>2.2.2</version>
+            <version>2.2.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
