@@ -6,3 +6,4 @@ build
 nbactions.xml
 attic
 gh-pages
+nb*.xml
