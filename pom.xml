@@ -73,6 +73,11 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <basedir>common/schemas</basedir>
+                    <catalogHandling>strict</catalogHandling>
+                    <catalogs>
+                        <catalog>catalog.xml</catalog>
+                    </catalogs>
                     <transformationSets>
                         <transformationSet>
                             <dir>src/main/xml</dir>
@@ -80,7 +85,7 @@
                             <includes>
                                 <include>Version.xml</include>
                             </includes>
-                            <stylesheet>tools/mkVersion.xsl</stylesheet>
+                            <stylesheet>${basedir}/common/xslt/mkVersion.xsl</stylesheet>
                             <parameters>
                                 <parameter>
                                     <name>version</name>
