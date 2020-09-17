@@ -7,7 +7,7 @@
     <groupId>org.harctoolbox</groupId>
     <artifactId>Jirc</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.8-SNAPSHOT</version>
+    <version>2.2.8</version>
     <name>${project.artifactId}</name>
     <licenses>
         <license>
@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.nameLowercase>jirc</project.nameLowercase>
     </properties>
 
     <developers>
@@ -80,12 +81,13 @@
                     </catalogs>
                     <transformationSets>
                         <transformationSet>
+                            <!-- Generate Version.java from Version.xml using mkVersion.xsl. -->
                             <dir>src/main/xml</dir>
-                            <outputDir>${project.build.directory}/generated-sources/xml/org/harctoolbox/jirc</outputDir>
+                            <outputDir>${project.build.directory}/generated-sources/xml/org/harctoolbox/${project.nameLowercase}</outputDir>
                             <includes>
                                 <include>Version.xml</include>
                             </includes>
-                            <stylesheet>${basedir}/common/xslt/mkVersion.xsl</stylesheet>
+                            <stylesheet>${project.basedir}/common/xslt/mkVersion.xsl</stylesheet>
                             <parameters>
                                 <parameter>
                                     <name>version</name>
@@ -98,6 +100,10 @@
                                 <parameter>
                                     <name>appName</name>
                                     <value>${project.artifactId}</value>
+                                </parameter>
+                                <parameter>
+                                    <name>commitId</name>
+                                    <value>${git.commit.id}</value>
                                 </parameter>
                             </parameters>
                             <fileMappers>
@@ -159,7 +165,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -206,6 +212,24 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.2</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyyMMdd</dateFormat><!--  human-readable part of the version number -->
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile><!-- somehow necessary. otherwise the variables are not available in the pom -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -280,7 +304,7 @@
         <dependency>
             <groupId>org.harctoolbox</groupId>
             <artifactId>Girr</artifactId>
-            <version>2.2.8-SNAPSHOT</version>
+            <version>2.2.8</version>
         </dependency>
     </dependencies>
 </project>
