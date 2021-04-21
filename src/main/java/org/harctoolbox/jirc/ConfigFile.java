@@ -246,6 +246,8 @@ public final class ConfigFile {
 
             line = line.trim();
 
+            // According to lircd.conf(5), a comment is only valid if the '#' is
+            // is the first column. Let's be "liberal in what we accept" here.
             int idx = line.indexOf('#');
             if (idx != -1)
                 line = line.substring(0, idx).trim();
@@ -344,6 +346,9 @@ public final class ConfigFile {
             try {
                 IrNCode code = cookedCode();
                 codes.add(code);
+            } catch (NumberFormatException ex) {
+                // Silly number, just ignore the command
+                consumeLine();
             } catch (ParseException ex) {
                 break;
             }
