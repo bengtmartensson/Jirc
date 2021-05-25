@@ -41,13 +41,12 @@ import org.harctoolbox.girr.RemoteSet;
 
 public final class ConfigFile {
 
-
     /**
      * Default character set input files.
      */
     public final static String defaultCharsetName = "WINDOWS-1252";
     /**
-     * Reads the file given as first argument and deliveres a Collection of {@link org.harctoolbox.jirc.IrRemote IrRemote}'s.
+     * Reads the file given as first argument and delivers a Collection of {@link org.harctoolbox.jirc.IrRemote IrRemote}'s.
      *
      * @param filename lirc.conf file
      * @param charsetName Name of the Charset used for reading.
@@ -109,12 +108,11 @@ public final class ConfigFile {
      * @param charsetName Name of the {@link java.nio.charset.Charset character set} for reading, e.g. URF-8, ISO-8859-1, WINDOWS-1252.
      * @param rejectLircCode If true, so-called Lirccode files are processed (but will be of limited use anyhow).
      * @param creatingUser Name of the creating user; for documentation purposes.
-     * @param alternatingSigns If true, the generated signals will precede gaps with a minus sign.
      * @return RemoteSet as per <a href="http://www.harctoolbox.org/Girr.html">Girr specification</a>.
      * @throws IOException Misc IO errors.
      */
     public static RemoteSet parseConfig(File filename, String charsetName, boolean rejectLircCode,
-            String creatingUser, boolean alternatingSigns) throws IOException {
+            String creatingUser) throws IOException {
         Collection<IrRemote> lircRemotes = readConfig(filename, charsetName, rejectLircCode);
         return IrRemote.newRemoteSet(lircRemotes, filename.getCanonicalPath(), creatingUser);
     }
@@ -126,12 +124,11 @@ public final class ConfigFile {
      * @param source String containing the source of the informatsion, for documentation purposes.
      * @param rejectLircCode If true, so-called Lirccode files are rejected, otherwise they are processed (but will be of limited use anyhow)
      * @param creatingUser Name of the creating user; for documentation purposes.
-     * @param alternatingSigns If true, the generated signals will precede gaps with a minus sign.
      * @return RemoteSet as per <a href="http://www.harctoolbox.org/Girr.html">Girr specification</a>.
      * @throws IOException Misc IO errors.
      */
     public static RemoteSet parseConfig(Reader reader, String source, boolean rejectLircCode,
-            String creatingUser, boolean alternatingSigns) throws IOException {
+            String creatingUser) throws IOException {
         Collection<IrRemote> lircRemotes = readConfig(reader, source, rejectLircCode);
         return IrRemote.newRemoteSet(lircRemotes, source, creatingUser);
     }
@@ -160,11 +157,11 @@ public final class ConfigFile {
         try {
             RemoteSet remoteSet;
             if (args.length == offset)
-                remoteSet = parseConfig(new InputStreamReader(System.in, defaultCharsetName), defaultCharsetName, true, null, false);
+                remoteSet = parseConfig(new InputStreamReader(System.in, defaultCharsetName), defaultCharsetName, true, null);
             else {
                 remoteSet = new RemoteSet();
                 for (int i = offset; i < args.length; i++) {
-                    RemoteSet set = parseConfig(new File(args[i]), defaultCharsetName, true, null, false);
+                    RemoteSet set = parseConfig(new File(args[i]), defaultCharsetName, true, null);
                     remoteSet.append(set);
                 }
             }
