@@ -7,7 +7,7 @@
     <groupId>org.harctoolbox</groupId>
     <artifactId>Jirc</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.10</version>
+    <version>2.2.11-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <licenses>
         <license>
@@ -304,7 +304,7 @@
         <dependency>
             <groupId>org.harctoolbox</groupId>
             <artifactId>Girr</artifactId> <!-- Invokes IrpTransmgrifier transitively -->
-            <version>2.2.10</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
