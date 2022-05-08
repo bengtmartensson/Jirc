@@ -17,7 +17,6 @@
         <include>*.txt</include>
         <include>target/*.jar</include>
       </includes>
-      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>target</directory>
