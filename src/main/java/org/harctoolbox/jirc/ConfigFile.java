@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2013, 2016 Bengt Martensson.
+Copyright (C) 2013, 2016, 2024 Bengt Martensson.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@ this program. If not, see http://www.gnu.org/licenses/.
  */
 package org.harctoolbox.jirc;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.harctoolbox.girr.RemoteSet;
+import org.harctoolbox.irp.IrpUtils;
 
 /**
  * This class parses the <a href="http://lirc.org/html/lircd.conf.html">Lircd configuration file(s)</a>.
@@ -45,6 +49,8 @@ public final class ConfigFile {
      * Default character set input files.
      */
     public final static String defaultCharsetName = "WINDOWS-1252";
+    private static JCommander argumentParser;
+    private static CommandLineArgs commandLineArgs;
     /**
      * Reads the file given as first argument and delivers a Collection of {@link org.harctoolbox.jirc.IrRemote IrRemote}'s.
      *
@@ -55,7 +61,7 @@ public final class ConfigFile {
      * @return Collection of IrRemote's.
      * @throws IOException Misc IO problem
      */
-    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    @SuppressWarnings({"ReturnOfCollectionOrArrayField", "UseOfSystemOutOrSystemErr"})
     public static Collection<IrRemote> readConfig(File filename, String charsetName, boolean rejectLircCode) throws IOException {
         //System.err.println("Parsing " + filename.getCanonicalPath());
         if (filename.isFile()) {
@@ -145,30 +151,62 @@ public final class ConfigFile {
         return result.toString();
     }
 
-    @SuppressWarnings({"CallToPrintStackTrace"})
+    @SuppressWarnings({"CallToPrintStackTrace", "null", "UseOfSystemOutOrSystemErr"})
     public static void main(String[] args) {
-        String out = "-";
-        int offset = 0;
-        if (args.length >= 2 && args[0].equals("-o")) {
-            out = args[1];
-            offset += 2;
+        commandLineArgs = new CommandLineArgs();
+        argumentParser = new JCommander(commandLineArgs);
+        argumentParser.setAllowAbbreviatedOptions(true);
+        argumentParser.setProgramName(Version.appName);
+
+        try {
+            argumentParser.parse(args);
+        } catch (ParameterException ex) {
+            System.err.println(ex.getMessage());
+            usage(IrpUtils.EXIT_USAGE_ERROR);
+        }
+
+        if (commandLineArgs.helpRequested)
+            usage(IrpUtils.EXIT_SUCCESS);
+
+        if (commandLineArgs.versionRequested) {
+            System.out.println(Version.versionString);
+            System.out.println("JVM: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version")
+                    + " " + System.getProperty("os.name") + "-" + System.getProperty("os.arch"));
+            System.out.println();
+            System.out.println(Version.licenseString);
+            System.exit(IrpUtils.EXIT_SUCCESS);
         }
 
         try {
-            RemoteSet remoteSet;
-            if (args.length == offset)
-                remoteSet = parseConfig(new InputStreamReader(System.in, defaultCharsetName), defaultCharsetName, true, null);
+            RemoteSet remoteSet = null;
+            if (commandLineArgs.inFiles.isEmpty())
+                remoteSet = parseConfig(new InputStreamReader(System.in, defaultCharsetName), defaultCharsetName, ! commandLineArgs.lirccode, null);
             else {
-                remoteSet = new RemoteSet();
-                for (int i = offset; i < args.length; i++) {
-                    RemoteSet set = parseConfig(new File(args[i]), defaultCharsetName, true, null);
-                    remoteSet.append(set);
+                for (String f : commandLineArgs.inFiles) {
+                    RemoteSet set = parseConfig(new File(f), defaultCharsetName, ! commandLineArgs.lirccode, null);
+                    if (remoteSet == null)
+                        remoteSet = set;
+                    else
+                        remoteSet.append(set);
                 }
             }
-            remoteSet.print(out);
+            remoteSet.print(commandLineArgs.outFileName);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
+    private static void usage(int exitcode) {
+        StringBuilder str = new StringBuilder(256);
+        argumentParser.usage();
+
+        (exitcode == IrpUtils.EXIT_SUCCESS ? System.out : System.err).println(str);
+        doExit(exitcode); // placifying FindBugs...
+    }
+
+    private static void doExit(int exitcode) {
+        System.exit(exitcode);
     }
 
     private List<IrRemote> remotes;
@@ -198,6 +236,7 @@ public final class ConfigFile {
     }
 
 
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private List<IrRemote> remotes(String source, boolean rejectLircCode) throws IOException {
         List<IrRemote> rems = new ArrayList<>(16);
         while (true) {
@@ -208,7 +247,7 @@ public final class ConfigFile {
                     rems.add(remote);
                 else
                     System.err.println("Ignoring timingless remote " + remote.getName() + " in " + remote.getSource()
-                    + ". Unset \"Reject Lirc imports without timing\" if this is not desired.");
+                    + ".");
             } catch (ParseException ex) {
                 try {
                     lookFor("end", "remote");
@@ -227,9 +266,8 @@ public final class ConfigFile {
         List<IrNCode> codes = codes();
         gobble("end", "remote");
 
-        IrRemote irRemote = new IrRemote(parameters.name, parameters.driver, parameters.flags,
+        return new IrRemote(parameters.name, parameters.driver, parameters.flags,
                 parameters.unaryParameters, parameters.binaryParameters, codes);
-        return irRemote;
     }
 
     private void readLine() throws IOException, EofException {
@@ -284,7 +322,7 @@ public final class ConfigFile {
         }
     }
 
-
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private ProtocolParameters parameters() throws IOException, ParseException, EofException {
         ProtocolParameters parameters = new ProtocolParameters();
         while (true) {
@@ -395,8 +433,7 @@ public final class ConfigFile {
         String cmdName = words[1];
         consumeLine();
         List<Integer> codes = integerList();
-        IrNCode irNCode = new IrNCode(cmdName, 0, codes);
-        return irNCode;
+        return new IrNCode(cmdName, 0, codes);
     }
 
     private List<Integer> integerList() throws IOException, EofException {
@@ -405,13 +442,33 @@ public final class ConfigFile {
             readLine();
             try {
                 for (String w : words)
-                    numbers.add(Integer.parseInt(w));
+                    numbers.add(Integer.valueOf(w));
             } catch (NumberFormatException ex) {
                 return numbers;
             }
             consumeLine();
         }
     }
+
+    public static class CommandLineArgs {
+
+        @Parameter
+        private List<String> inFiles = new ArrayList<String>(4);
+
+        @Parameter(names = {"-h", "--help", "-?"}, description = "Produce help text")
+        private boolean helpRequested = false;
+
+        @Parameter(names = {"-o", "--output"}, description = "Name out output file, unless stdout.")
+        private String outFileName = "-";
+
+        @Parameter(names = {"-l", "--lirccode"}, description = "Accept lirccode (timingless) remotes.")
+        private boolean lirccode = false;
+
+        @Parameter(names = {"-v", "--version"}, description = "Print version and copyright info.")
+        private boolean versionRequested = false;
+    }
+
+    @SuppressWarnings("serial")
     private static class EofException extends Exception {
 
         EofException(String str) {
@@ -422,6 +479,7 @@ public final class ConfigFile {
             super();
         }
     }
+
     private static class ProtocolParameters {
         private String name = null;
         private String driver;
