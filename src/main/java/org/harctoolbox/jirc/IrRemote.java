@@ -661,7 +661,7 @@ final public class IrRemote {
         Map<String, Long> parameters = new HashMap<>(1);
         parameters.put("lirc", code.getCode());
         try {
-            return new Command(code.getName(), null, "lircdriver:" + driver, parameters);
+            return new Command(code.getName(), null, "lircdriver:" + driver, parameters, false);
         } catch (GirrException ex) {
             // this cannot happen
             throw new InternalError();
