@@ -16,8 +16,7 @@ final class IrNCode {
     }
     private static long parseUnsignedLongHex(String s) {
         if (s.length() == 16) {
-            long value = new BigInteger(s, 16).longValue();
-            return value;
+            return new BigInteger(s, 16).longValue();
         }
         return Long.parseLong(s, 16);
     }

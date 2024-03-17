@@ -161,12 +161,11 @@ final public class IrRemote {
             girrRemotes.put(remote.getName(), remote);
         }
 
-        RemoteSet girr = new RemoteSet(creatingUser == null ? System.getProperty("user.name") : creatingUser, configFilename,
+        return new RemoteSet(creatingUser == null ? System.getProperty("user.name") : creatingUser, configFilename,
                 (new Date()).toString(), Version.appName, Version.version,
                 org.harctoolbox.girr.Version.appName, org.harctoolbox.girr.Version.version,
                 null,
                 girrRemotes);
-        return girr;
     }
 
     static int bit_count(IrRemote remote) {
@@ -580,6 +579,7 @@ final public class IrRemote {
         sanityChecks();
     }
 
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private void logprintf(int level, String format, Object... args) {
         System.err.println(String.format(format, args));
     }

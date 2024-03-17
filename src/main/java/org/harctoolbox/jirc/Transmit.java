@@ -86,10 +86,12 @@ final class Transmit {
         return valid ? send_buffer.getData() : null;
     }
 
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private void logprintf(int level, String format, Object... args) {
         System.err.println(String.format(remote.getSource() + " (" + remote.getName() + "): " + format, args));
     }
 
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private void LOGPRINTF(int level, String format, Object... args) {
         if (debug > 0)
             System.err.println(String.format(remote.getName() + ": " + format, args));
