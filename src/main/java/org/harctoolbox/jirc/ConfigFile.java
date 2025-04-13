@@ -38,7 +38,7 @@ import org.harctoolbox.girr.RemoteSet;
 import org.harctoolbox.irp.IrpUtils;
 
 /**
- * This class parses the <a href="http://lirc.org/html/lircd.conf.html">Lircd configuration file(s)</a>.
+ * This class parses the <a href="https://lirc.org/html/lircd.conf.html">Lircd configuration file(s)</a>.
  * Its preferred public members are the static functions parseConfig,
  * returning a {@link org.harctoolbox.girr.RemoteSet RemoteSet}.
  */
@@ -114,7 +114,7 @@ public final class ConfigFile {
      * @param charsetName Name of the {@link java.nio.charset.Charset character set} for reading, e.g. URF-8, ISO-8859-1, WINDOWS-1252.
      * @param rejectLircCode If true, so-called Lirccode files are processed (but will be of limited use anyhow).
      * @param creatingUser Name of the creating user; for documentation purposes.
-     * @return RemoteSet as per <a href="http://www.harctoolbox.org/Girr.html">Girr specification</a>.
+     * @return RemoteSet as per <a href="https://www.harctoolbox.org/Girr.html">Girr specification</a>.
      * @throws IOException Misc IO errors.
      */
     public static RemoteSet parseConfig(File filename, String charsetName, boolean rejectLircCode,
@@ -130,7 +130,7 @@ public final class ConfigFile {
      * @param source String containing the source of the informatsion, for documentation purposes.
      * @param rejectLircCode If true, so-called Lirccode files are rejected, otherwise they are processed (but will be of limited use anyhow)
      * @param creatingUser Name of the creating user; for documentation purposes.
-     * @return RemoteSet as per <a href="http://www.harctoolbox.org/Girr.html">Girr specification</a>.
+     * @return RemoteSet as per <a href="https://www.harctoolbox.org/Girr.html">Girr specification</a>.
      * @throws IOException Misc IO errors.
      */
     public static RemoteSet parseConfig(Reader reader, String source, boolean rejectLircCode,
